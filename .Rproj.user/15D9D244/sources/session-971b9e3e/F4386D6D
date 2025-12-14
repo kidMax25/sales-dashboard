@@ -1,0 +1,26 @@
+{
+    "id": "F4386D6D",
+    "path": "C:/Users/snmax/OneDrive/Desktop/Shinyx/sales-dashboard/R/server.R",
+    "project_path": "R/server.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1765355346742.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "27,4",
+        "scrollLine": "0"
+    },
+    "folds": "9|31|12|2|\n30|29|32|2|\n35|30|37|2|\n40|32|43|2|\n46|35|56|2|\n59|42|69|2|\n72|37|82|2|\n85|32|95|2|\n98|36|108|2|\n111|41|122|2|\n125|37|128|2|\n",
+    "lastKnownWriteTime": 1765708072,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1765708072032,
+    "read_only": false,
+    "read_only_alternatives": []
+}

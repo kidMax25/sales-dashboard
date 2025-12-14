@@ -1,0 +1,9 @@
+# ShinyX Configuration
+
+framework: shadcn-ui
+cdn: true
+layout: blank
+theme: neutral
+hot_reload: true
+
+# Add custom configuration here

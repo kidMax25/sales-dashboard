@@ -1,0 +1,371 @@
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #f9fafb;
+    zoom: 0.8;
+    -moz-transform: scale(0.8);
+    -moz-transform-origin: 0 0;
+}
+
+/* ============================================
+   SIDEBAR STYLES
+   ============================================ */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    background: white;
+    border-right: 1px solid #e5e7eb;
+    transition: width 0.3s ease, transform 0.3s ease;
+    z-index: 40;
+    overflow-y: auto;
+}
+
+.sidebar.minimized {
+    width: 64px;
+}
+
+.sidebar-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    color: #6b7280;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.sidebar-link.active {
+    background-color: #dbeafe;
+    color: #2563eb;
+}
+
+.sidebar-link svg {
+    min-width: 1.25rem;
+    margin-right: 0.75rem;
+}
+
+.sidebar.minimized .sidebar-text {
+    display: none; !important
+    opacity: 0;
+}
+
+.sidebar.minimized .sidebar-link {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar.minimized .sidebar-link svg {
+    margin-right: 0;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content {
+    margin-left: 240px;
+    margin-top: 64px;
+    padding: 1.5rem;
+    min-height: calc(100vh - 64px);
+    transition: margin-left 0.3s ease;
+    background-color: #f9fafb;
+}
+
+.sidebar.minimized ~ .main-content {
+    margin-left: 64px;
+}
+
+/* ============================================
+   PAGE CONTENT
+   ============================================ */
+.page-content {
+    display: none;
+}
+
+.page-content.active {
+    display: block;
+}
+
+/* ============================================
+   DESKTOP LAYOUT (1024px and above)
+   ============================================ */
+@media (min-width: 1024px) {
+    .dashboard-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .dashboard-grid {
+        display: grid !important;
+        grid-template-columns: repeat(12, 1fr) !important;
+
+        grid-template-rows: 145px 145px auto auto !important;
+        gap: 14px !important;
+        width: 100% !important;
+    }
+
+    /* --- TOP SECTION --- */
+    
+    /* Agent Profile: EXPLICIT HEIGHT = 374px (180 + 14 + 180) */
+    .div2 {
+        grid-column: 1 / 3 !important;
+        grid-row: 1 / 3 !important;
+        height: 303px !important;
+        max-height: 303px !important;
+        overflow: hidden !important;
+    }
+    
+    /* Force all children to respect the height */
+    .div2 * {
+        max-height: 100% !important;
+    }
+    
+    .div2 #agent-profile-container {
+        height: 100% !important;
+        max-height: 100% !important;
+    }
+    
+    .div2 #agent-profile-container > * {
+        height: 100% !important;
+        max-height: 100% !important;
+    }
+
+    .div3 {
+        grid-column: 3 / 13 !important;
+        grid-row: 1 !important;
+        height: 175px !important;
+        max-height: 175px !important;
+        overflow: hidden !important;
+    
+    }
+
+    /* KPIs: EXPLICIT HEIGHT = 180px */
+    .div4 {
+        grid-column: 3 / 13 !important;
+        grid-row: 2 !important;
+        height: 180px !important;
+        max-height: 180px !important;
+        overflow: hidden !important;
+    }
+
+    /* --- REST OF THE LAYOUT --- */
+    
+    /* Product Category Distribution */
+    .div5 {
+        grid-column: 1 / span 5;
+        grid-row: 3;
+        min-height: 320px;
+    }
+
+    /* Product Sales Distribution */
+    .div6 {
+        grid-column: 6 / span 5;
+        grid-row: 3;
+        min-height: 320px;
+    }
+
+    /* Latest Sales */
+    .div7 {
+        grid-column: 11 / span 3;
+        grid-row: 3;
+        min-height: 320px;
+    }
+
+
+    /* Map */
+    .div8 {
+        grid-column: 1 / span 4;
+        grid-row: 4;
+        min-height: 320px;
+    }
+
+    /* Regional Sales Distribution */
+    .div9 {
+        grid-column: 5 / span 3;
+        grid-row: 4;
+        min-height: 320px;
+    }
+
+    /* Sales Trend */
+    .div10 {
+        grid-column: 8 / span 5;
+        grid-row: 4;
+        min-height: 320px;
+    }
+}
+
+/* ============================================
+   TABLET LAYOUT (768px - 1023px)
+   ============================================ */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .sidebar.minimized ~ .main-content {
+        margin-left: 0;
+    }
+
+    .dashboard-container {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .div2 {
+        grid-column: span 2;
+        min-height: 400px;
+    }
+
+    .div3 {
+        grid-column: span 2;
+    }
+
+    .div4 {
+        grid-column: span 2;
+    }
+
+    .div5 {
+        grid-column: span 1;
+    }
+
+    .div6 {
+        grid-column: span 2;
+    }
+
+    .div7 {
+        grid-column: span 1;
+    }
+
+    .div8 {
+        grid-column: span 2;
+    }
+
+    .div9 {
+        grid-column: span 1;
+    }
+
+    .div10 {
+        grid-column: span 1;
+    }
+
+    /* KPIs in 2x2 grid on tablet */
+    .div4 .grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* ============================================
+   MOBILE LAYOUT (below 768px)
+   ============================================ */
+@media (max-width: 767px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 0.75rem;
+        margin-top: 64px;
+    }
+    
+    .sidebar.minimized ~ .main-content {
+        margin-left: 0;
+    }
+
+    .dashboard-container {
+        width: 100%;
+    }
+
+    .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .div2,
+    .div3,
+    .div4,
+    .div5,
+    .div6,
+    .div7,
+    .div8,
+    .div9,
+    .div10 {
+        width: 100%;
+        min-height: auto;
+    }
+
+    /* KPIs in 2x2 grid on mobile */
+    .div4 .grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.h-full {
+    height: 100%;
+}
+
+/* Ensure cards fill their grid cells */
+.div3 > *,
+.div5 > *,
+.div6 > *,
+.div7 > *,
+.div8 > *,
+.div9 > *,
+.div10 > * {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}

@@ -1,0 +1,277 @@
+<div class="dashboard-container">
+    <div class="dashboard-grid">
+        
+        <!-- Div 2: Agent Profile -->
+        <div class="div2">
+            <div id="agent-profile-container" class="agent-profile-wrapper">
+                <!-- Compact loading placeholder -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
+                    <div class="animate-pulse text-center">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2"></div>
+                        <div class="h-3 bg-gray-200 rounded w-24 mx-auto mb-1"></div>
+                        <div class="h-2 bg-gray-200 rounded w-16 mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Div 3: Filters -->
+        <div class="div3">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full relative">
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Filters</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-2">
+            
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</label>
+                <div class="flex space-x-4">
+                    <div class="w-1/2">
+                        <input type="date" id="start_date" 
+                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer"
+                            placeholder="Start">
+                    </div>
+                    <div class="w-1/2">
+                        <input type="date" id="end_date" 
+                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer"
+                            placeholder="End">
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <label for="agent_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Sales Agent</label>
+                <select id="agent_filter" 
+                    class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer">
+                    <option value="" selected>All Agents</option>
+                    <option value="agent1">Nancy Davolio</option>
+                    <option value="agent2">Andrew Fuller</option>
+                    <option value="agent3">Janet Leverling</option>
+                    <option value="agent4">Margaret Peacock</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="region_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Region</label>
+                <select id="region_filter" 
+                    class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer">
+                    <option value="" selected>All Regions</option>
+                    <option value="north">North America</option>
+                    <option value="south">South America</option>
+                    <option value="europe">Europe</option>
+                    <option value="asia">Asia</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="category_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Product Category</label>
+                <select id="category_filter" 
+                    class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer">
+                    <option value="" selected>All Categories</option>
+                    <option value="beverages">Beverages</option>
+                    <option value="condiments">Condiments</option>
+                    <option value="confections">Confections</option>
+                    <option value="dairy">Dairy Products</option>
+                    <option value="grains">Grains/Cereals</option>
+                    <option value="meat">Meat/Poultry</option>
+                    <option value="produce">Produce</option>
+                    <option value="seafood">Seafood</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="absolute bottom-2 right-5">
+            <button id="reset-filters"
+  class="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+         text-white bg-blue-500 rounded-lg shadow-sm 
+         hover:bg-blue-600 active:bg-blue-700 
+         transition-colors duration-200 ease-in-out">
+  
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M6 18L18 6M6 6l12 12" />
+  </svg>
+  
+  <span>Reset Filters</span>
+</button>
+
+        </div>
+    </div>
+</div>
+        <!-- Div 4: KPI Cards -->
+        <div class="div4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" style="margin-top: 28px">
+                <!-- Total Revenue -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600">Total Revenue</span>
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-800">$1.2M</div>
+                    <div class="text-xs text-green-600 mt-1">+12.5% from last month</div>
+                </div>
+                
+                <!-- Total Orders -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600">Total Orders</span>
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-800">830</div>
+                    <div class="text-xs text-blue-600 mt-1">+8.2% from last month</div>
+                </div>
+                
+                <!-- Average Order Value -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600">Avg Order Value</span>
+                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-800">$1,445</div>
+                    <div class="text-xs text-purple-600 mt-1">+3.7% from last month</div>
+                </div>
+                
+                <!-- Total Shipped -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600">Total Shipped</span>
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-800">742</div>
+                    <div class="text-xs text-orange-600 mt-1">89% of total orders</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Information Section -->
+        <!-- Div 5: Product Category Distribution -->
+        <div class="div5">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Product Category Distribution</h3>
+                <div class="flex items-center justify-center h-64 text-gray-400">
+                    Chart Placeholder
+                </div>
+            </div>
+        </div>
+        
+        <!-- Div 6: Product Sales Distribution -->
+        <div class="div6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Product Sales Distribution</h3>
+                <div class="flex items-center justify-center h-64 text-gray-400">
+                    Chart Placeholder
+                </div>
+            </div>
+        </div>
+        
+        <!-- Div 7: Latest Sales -->
+        <div class="div7">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Latest Sales</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <div>
+                            <div class="font-medium text-sm">Chai</div>
+                            <div class="text-xs text-gray-500">Beverages</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold text-sm">$72.00</div>
+                            <div class="text-xs text-gray-500">2 units</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <div>
+                            <div class="font-medium text-sm">Chang</div>
+                            <div class="text-xs text-gray-500">Beverages</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold text-sm">$95.00</div>
+                            <div class="text-xs text-gray-500">5 units</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Regional Information Section -->
+        <!-- Div 8: Map -->
+        <div class="div8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Map</h3>
+                <div class="flex items-center justify-center h-64 text-gray-400">
+                    Map Placeholder
+                </div>
+            </div>
+        </div>
+        
+        <!-- Div 9: Regional Sales Distribution -->
+        <div class="div9">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Regional Sales Distribution</h3>
+                <div class="flex items-center justify-center h-64 text-gray-400">
+                    Chart Placeholder
+                </div>
+            </div>
+        </div>
+        
+        <!-- Div 10: Sales Trend -->
+        <div class="div10">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Sales Trend</h3>
+                <div class="flex items-center justify-center h-64 text-gray-400">
+                    Chart Placeholder
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+// Load agent profile component
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Loading agent profile...');
+    
+    // Try multiple paths
+    const paths = [
+        'components/agent-profile.html',
+        'www/components/agent-profile.html',
+        '/components/agent-profile.html'
+    ];
+    
+    async function loadAgentProfile() {
+        for (const path of paths) {
+            try {
+                const response = await fetch(path);
+                if (response.ok) {
+                    const html = await response.text();
+                    console.log('Agent profile loaded from:', path);
+                    document.getElementById('agent-profile-container').innerHTML = html;
+                    
+                    // Execute any scripts in the loaded content
+                    const scripts = document.getElementById('agent-profile-container').getElementsByTagName('script');
+                    for (let script of scripts) {
+                        eval(script.innerHTML);
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.log('Failed to load from:', path);
+            }
+        }
+        console.error('Could not load agent profile from any path');
+    }
+    
+    loadAgentProfile();
+});
+</script>

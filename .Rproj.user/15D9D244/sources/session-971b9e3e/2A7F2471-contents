@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Northwind Traders Dashboard</title>
+    
+    {{ headContent() }}
+    
+    
+    <!-- Flowbite CSS & JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Header -->
+    {{ header }}
+    
+    <!-- Sidebar -->
+    {{ sidebar }}
+    
+    <!-- Main Content Area -->
+    <div id="main-content" class="main-content">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page-content active">
+            {{ dashboard }}
+        </div>
+        
+        <!-- Sales Agents Page -->
+        <div id="sales-agents-page" class="page-content">
+            {{ sales_agents }}
+        </div>
+        
+        <!-- Product Performance Page -->
+        <div id="product-performance-page" class="page-content">
+            {{ product_performance }}
+        </div>
+        
+        <!-- Sales Forecast Page -->
+        <div id="sales-forecast-page" class="page-content">
+            {{ sales_forecast }}
+        </div>
+        
+        <!-- Data Page -->
+        <div id="data-page" class="page-content">
+            {{ data_page }}
+        </div>
+        
+        <!-- Documentation Page -->
+        <div id="documentation-page" class="page-content">
+            {{ documentation }}
+        </div>
+    </div>
+    
+    <!-- JavaScript Files -->
+    <script src="js/main.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/filters.js"></script>
+    
+</body>
+</html>

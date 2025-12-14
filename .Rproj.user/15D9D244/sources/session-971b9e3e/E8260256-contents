@@ -1,0 +1,107 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="text-center">
+        <!-- Agent Avatar -->
+        <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-blue-100">
+            <img id="agent-avatar" src="https://i.pravatar.cc/150?img=1" alt="Agent" class="w-full h-full object-cover">
+        </div>
+        
+        <!-- Agent Name -->
+        <h3 id="agent-name" class="text-lg font-bold text-gray-800 mb-1">Nancy Davolio</h3>
+        
+        <!-- Agent Title -->
+        <p id="agent-title" class="text-sm text-gray-500 mb-4">Sales Representative</p>
+        
+        <!-- Agent Stats -->
+        <div class="space-y-3 text-left">
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-600">Age</span>
+                <span id="agent-age" class="text-sm font-semibold text-gray-800">32</span>
+            </div>
+            
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-600">Region</span>
+                <span id="agent-region" class="text-sm font-semibold text-gray-800">North America</span>
+            </div>
+            
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-600">Sales YTD</span>
+                <span id="agent-sales" class="text-sm font-semibold text-green-600">$245,890</span>
+            </div>
+            
+            <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-gray-600">Orders</span>
+                <span id="agent-orders" class="text-sm font-semibold text-blue-600">156</span>
+            </div>
+        </div>
+        
+        <!-- Contact Button -->
+        <button class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+            View Profile
+        </button>
+    </div>
+</div>
+
+<script>
+// Agent data
+const agents = {
+    'agent1': {
+        name: 'Nancy Davolio',
+        title: 'Sales Representative',
+        age: 32,
+        region: 'North America',
+        sales: '$245,890',
+        orders: 156,
+        avatar: 'https://i.pravatar.cc/150?img=1'
+    },
+    'agent2': {
+        name: 'Andrew Fuller',
+        title: 'Vice President Sales',
+        age: 45,
+        region: 'Europe',
+        sales: '$412,560',
+        orders: 203,
+        avatar: 'https://i.pravatar.cc/150?img=12'
+    },
+    'agent3': {
+        name: 'Janet Leverling',
+        title: 'Sales Representative',
+        age: 28,
+        region: 'Asia',
+        sales: '$189,320',
+        orders: 127,
+        avatar: 'https://i.pravatar.cc/150?img=5'
+    },
+    'agent4': {
+        name: 'Margaret Peacock',
+        title: 'Sales Representative',
+        age: 38,
+        region: 'South America',
+        sales: '$305,780',
+        orders: 184,
+        avatar: 'https://i.pravatar.cc/150?img=9'
+    }
+};
+
+// Update agent profile
+function updateAgentProfile(agentId) {
+    const agent = agents[agentId] || agents['agent1'];
+    
+    document.getElementById('agent-avatar').src = agent.avatar;
+    document.getElementById('agent-name').textContent = agent.name;
+    document.getElementById('agent-title').textContent = agent.title;
+    document.getElementById('agent-age').textContent = agent.age;
+    document.getElementById('agent-region').textContent = agent.region;
+    document.getElementById('agent-sales').textContent = agent.sales;
+    document.getElementById('agent-orders').textContent = agent.orders;
+}
+
+// Listen for agent filter changes
+document.addEventListener('DOMContentLoaded', function() {
+    const agentFilter = document.getElementById('agent_filter');
+    if (agentFilter) {
+        agentFilter.addEventListener('change', function() {
+            updateAgentProfile(this.value || 'agent1');
+        });
+    }
+});
+</script>

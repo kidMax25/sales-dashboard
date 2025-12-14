@@ -1,0 +1,64 @@
+/**
+ * Sidebar - Toggle functionality
+ */
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    
+    if (window.innerWidth >= 1024) {
+        // Desktop: minimize/expand
+        sidebar.classList.toggle('minimized');
+    } else {
+        // Mobile: show/hide
+        sidebar.classList.toggle('open');
+    }
+}
+
+// Initialize sidebar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sidebar initialized');
+    
+    const sidebar = document.getElementById('sidebar');
+    
+    // Desktop toggle button
+    const desktopToggle = document.getElementById('sidebar-toggle-desktop');
+    if (desktopToggle) {
+        desktopToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // Mobile toggle button
+    const mobileToggle = document.getElementById('sidebar-toggle-mobile');
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        if (window.innerWidth < 1024) {
+            const sidebar = document.getElementById('sidebar');
+            const isClickInside = sidebar?.contains(event.target);
+            const isToggleButton = event.target.closest('#sidebar-toggle-mobile');
+            
+            if (!isClickInside && !isToggleButton && sidebar?.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        }
+    });
+    
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth >= 1024) {
+                // Desktop: remove mobile class
+                sidebar.classList.remove('open');
+            } else {
+                // Mobile: remove minimized class
+                sidebar.classList.remove('minimized');
+            }
+        }, 250);
+    });
+});
