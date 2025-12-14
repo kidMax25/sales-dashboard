@@ -24,6 +24,7 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-2">
             
+            <!-- Date Range Filter -->
             <div>
                 <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</label>
                 <div class="flex space-x-4">
@@ -40,62 +41,46 @@
                 </div>
             </div>
             
+            <!-- Sales Agent Filter -->
             <div>
                 <label for="agent_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Sales Agent</label>
                 <select id="agent_filter" 
                     class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer">
-                    <option value="" selected>All Agents</option>
-                    <option value="agent1">Nancy Davolio</option>
-                    <option value="agent2">Andrew Fuller</option>
-                    <option value="agent3">Janet Leverling</option>
-                    <option value="agent4">Margaret Peacock</option>
+                    <option value="" selected>Loading...</option>
                 </select>
             </div>
             
+            <!-- Region Filter (Ship City) -->
             <div>
-                <label for="region_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Region</label>
+                <label for="region_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Ship City</label>
                 <select id="region_filter" 
                     class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer">
-                    <option value="" selected>All Regions</option>
-                    <option value="north">North America</option>
-                    <option value="south">South America</option>
-                    <option value="europe">Europe</option>
-                    <option value="asia">Asia</option>
+                    <option value="" selected>Loading...</option>
                 </select>
             </div>
             
+            <!-- Product Category Filter -->
             <div>
                 <label for="category_filter" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Product Category</label>
                 <select id="category_filter" 
                     class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 focus:text-blue-600 peer">
-                    <option value="" selected>All Categories</option>
-                    <option value="beverages">Beverages</option>
-                    <option value="condiments">Condiments</option>
-                    <option value="confections">Confections</option>
-                    <option value="dairy">Dairy Products</option>
-                    <option value="grains">Grains/Cereals</option>
-                    <option value="meat">Meat/Poultry</option>
-                    <option value="produce">Produce</option>
-                    <option value="seafood">Seafood</option>
+                    <option value="" selected>Loading...</option>
                 </select>
             </div>
         </div>
 
         <div class="absolute bottom-2 right-5">
             <button id="reset-filters"
-  class="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-         text-white bg-blue-500 rounded-lg shadow-sm 
-         hover:bg-blue-600 active:bg-blue-700 
-         transition-colors duration-200 ease-in-out">
-  
-  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-      d="M6 18L18 6M6 6l12 12" />
-  </svg>
-  
-  <span>Reset Filters</span>
-</button>
-
+                class="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                       text-white bg-blue-500 rounded-lg shadow-sm 
+                       hover:bg-blue-600 active:bg-blue-700 
+                       transition-colors duration-200 ease-in-out">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Reset Filters</span>
+            </button>
         </div>
     </div>
 </div>

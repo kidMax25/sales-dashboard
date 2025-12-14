@@ -1,52 +1,79 @@
 # ============================================
-# FILTER MODULE - Global Reactive Filters
+# FILTER MODULE - Pure Data Logic (No UI)
 # ============================================
-# This module handles all filter operations globally
-# No namespacing - single source of truth for filters
+# Extracts unique values from correct columns:
+# - Sales Agent: First Name + Last Name
+# - Region: Ship City
+# - Category: Category
 
 library(shiny)
 library(tidyverse)
 
-# Load data operations
 source("data/database_operations.R")
 
 # ============================================
-# GET FILTER OPTIONS
+# GET FILTER OPTIONS FROM DATA
 # ============================================
-# This function extracts unique values from the data
-# for populating filter dropdowns
 
 get_filter_options <- function() {
   tryCatch({
-    # Get sales data
     sales_data <- get_data()
     
     if (is.null(sales_data) || nrow(sales_data) == 0) {
       return(NULL)
     }
     
-    # Extract unique values for filters
+    cat("Extracting filter options from sales_data...\n")
+    
+    # Extract unique agents (First Name + Last Name)
+    agents <- sales_data %>%
+      distinct(`Employee ID`, `First Name`, `Last Name`) %>%
+      filter(!is.na(`Employee ID`), 
+             !is.na(`First Name`), 
+             !is.na(`Last Name`)) %>%
+      mutate(
+        value = as.character(`Employee ID`),
+        label = paste(`First Name`, `Last Name`)
+      ) %>%
+      arrange(label) %>%
+      select(value, label)
+    
+    cat("  - Agents extracted:", nrow(agents), "\n")
+    
+    # Extract unique regions (Ship City)
+    regions <- sales_data %>%
+      distinct(`Ship City`) %>%
+      filter(!is.na(`Ship City`), `Ship City` != "") %>%
+      rename(value = `Ship City`) %>%
+      mutate(label = value) %>%
+      arrange(value)
+    
+    cat("  - Regions (Ship City) extracted:", nrow(regions), "\n")
+    
+    # Extract unique categories
+    categories <- sales_data %>%
+      distinct(Category) %>%
+      filter(!is.na(Category), Category != "") %>%
+      rename(value = Category) %>%
+      mutate(label = value) %>%
+      arrange(value)
+    
+    cat("  - Categories extracted:", nrow(categories), "\n")
+    
+    # Get date range from Order Date
+    date_range <- list(
+      min_date = as.character(min(sales_data$`Order Date`, na.rm = TRUE)),
+      max_date = as.character(max(sales_data$`Order Date`, na.rm = TRUE))
+    )
+    
+    cat("  - Date range:", date_range$min_date, "to", date_range$max_date, "\n")
+    
+    # Build options list
     options <- list(
-      agents = sales_data %>%
-        distinct(`Employee ID`, `First Name`, `Last Name`) %>%
-        filter(!is.na(`Employee ID`)) %>%
-        mutate(full_name = paste(`First Name`, `Last Name`)) %>%
-        arrange(full_name),
-      
-      regions = sales_data %>%
-        distinct(`Ship Country/Region`) %>%
-        filter(!is.na(`Ship Country/Region`)) %>%
-        arrange(`Ship Country/Region`),
-      
-      categories = sales_data %>%
-        distinct(Category) %>%
-        filter(!is.na(Category)) %>%
-        arrange(Category),
-      
-      date_range = list(
-        min_date = min(sales_data$`Order Date`, na.rm = TRUE),
-        max_date = max(sales_data$`Order Date`, na.rm = TRUE)
-      )
+      agents = agents,
+      regions = regions,
+      categories = categories,
+      date_range = date_range
     )
     
     return(options)
@@ -58,9 +85,8 @@ get_filter_options <- function() {
 }
 
 # ============================================
-# REACTIVE FILTER VALUES
+# CREATE FILTER REACTIVE VALUES
 # ============================================
-# Creates reactive values that hold current filter state
 
 create_filter_reactives <- function() {
   reactiveValues(
@@ -69,65 +95,14 @@ create_filter_reactives <- function() {
     agent = NULL,
     region = NULL,
     category = NULL,
-    is_filtered = FALSE
+    is_filtered = FALSE,
+    last_updated = Sys.time()
   )
-}
-
-# ============================================
-# UPDATE FILTERS FROM INPUT
-# ============================================
-# Updates reactive values when inputs change
-
-update_filters <- function(filters, input) {
-  filters$start_date <- input$start_date
-  filters$end_date <- input$end_date
-  filters$agent <- input$agent_filter
-  filters$region <- input$region_filter
-  filters$category <- input$category_filter
-  
-  # Check if any filter is active
-  filters$is_filtered <- !is.null(filters$start_date) || 
-    !is.null(filters$end_date) ||
-    !is.null(filters$agent) || 
-    !is.null(filters$region) || 
-    !is.null(filters$category)
-  
-  cat("=== Filters Updated ===\n")
-  cat("Start Date:", filters$start_date, "\n")
-  cat("End Date:", filters$end_date, "\n")
-  cat("Agent:", filters$agent, "\n")
-  cat("Region:", filters$region, "\n")
-  cat("Category:", filters$category, "\n")
-  cat("Is Filtered:", filters$is_filtered, "\n")
-}
-
-# ============================================
-# RESET FILTERS
-# ============================================
-# Resets all filter values to NULL
-
-reset_filters <- function(filters, session) {
-  filters$start_date <- NULL
-  filters$end_date <- NULL
-  filters$agent <- NULL
-  filters$region <- NULL
-  filters$category <- NULL
-  filters$is_filtered <- FALSE
-  
-  # Reset UI inputs
-  updateDateInput(session, "start_date", value = NA)
-  updateDateInput(session, "end_date", value = NA)
-  updateSelectInput(session, "agent_filter", selected = "")
-  updateSelectInput(session, "region_filter", selected = "")
-  updateSelectInput(session, "category_filter", selected = "")
-  
-  cat("Filters reset\n")
 }
 
 # ============================================
 # APPLY FILTERS TO DATA
 # ============================================
-# Filters the sales data based on current filter values
 
 apply_filters_to_data <- function(sales_data, filters) {
   
@@ -136,153 +111,59 @@ apply_filters_to_data <- function(sales_data, filters) {
   }
   
   filtered_data <- sales_data
+  original_rows <- nrow(filtered_data)
   
-  # Apply date range filter
-  if (!is.null(filters$start_date) && !is.na(filters$start_date)) {
+  # Date range filter (Order Date)
+  if (!is.null(filters$start_date) && filters$start_date != "") {
     filtered_data <- filtered_data %>%
-      filter(`Order Date` >= filters$start_date)
+      filter(`Order Date` >= as.Date(filters$start_date))
+    cat("  - After start_date filter:", nrow(filtered_data), "rows\n")
   }
   
-  if (!is.null(filters$end_date) && !is.na(filters$end_date)) {
+  if (!is.null(filters$end_date) && filters$end_date != "") {
     filtered_data <- filtered_data %>%
-      filter(`Order Date` <= filters$end_date)
+      filter(`Order Date` <= as.Date(filters$end_date))
+    cat("  - After end_date filter:", nrow(filtered_data), "rows\n")
   }
   
-  # Apply agent filter
+  # Agent filter (Employee ID)
   if (!is.null(filters$agent) && filters$agent != "") {
     filtered_data <- filtered_data %>%
-      filter(`Employee ID` == filters$agent)
+      filter(`Employee ID` == as.numeric(filters$agent))
+    cat("  - After agent filter:", nrow(filtered_data), "rows\n")
   }
   
-  # Apply region filter
+  # Region filter (Ship City)
   if (!is.null(filters$region) && filters$region != "") {
     filtered_data <- filtered_data %>%
-      filter(`Ship Country/Region` == filters$region)
+      filter(`Ship City` == filters$region)
+    cat("  - After region filter:", nrow(filtered_data), "rows\n")
   }
   
-  # Apply category filter
+  # Category filter
   if (!is.null(filters$category) && filters$category != "") {
     filtered_data <- filtered_data %>%
       filter(Category == filters$category)
+    cat("  - After category filter:", nrow(filtered_data), "rows\n")
   }
   
-  cat("Data filtered: ", nrow(filtered_data), " rows remaining\n")
+  cat("Data filtered:", original_rows, "->", nrow(filtered_data), "rows\n")
   
   return(filtered_data)
 }
 
 # ============================================
-# RENDER FILTER UI DYNAMICALLY
+# GET CURRENT FILTER STATE
 # ============================================
-# Renders the filter UI with dynamic options from data
 
-render_filter_ui <- function(output) {
-  output$filter_ui <- renderUI({
-    
-    # Get filter options from data
-    options <- get_filter_options()
-    
-    if (is.null(options)) {
-      return(tags$div(
-        class = "text-red-600 text-sm",
-        "Error loading filter options"
-      ))
-    }
-    
-    # Build agent choices
-    agent_choices <- setNames(
-      c("", options$agents$`Employee ID`),
-      c("All Agents", options$agents$full_name)
-    )
-    
-    # Build region choices
-    region_choices <- c("All Regions", options$regions$`Ship Country/Region`)
-    names(region_choices) <- region_choices
-    region_choices["All Regions"] <- ""
-    
-    # Build category choices
-    category_choices <- c("All Categories", options$categories$Category)
-    names(category_choices) <- category_choices
-    category_choices["All Categories"] <- ""
-    
-    tags$div(
-      class = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-2",
-      
-      # Date Range
-      tags$div(
-        tags$label(
-          class = "block text-xs font-medium text-gray-500 uppercase tracking-wider",
-          "Date Range"
-        ),
-        tags$div(
-          class = "flex space-x-4",
-          tags$div(
-            class = "w-1/2",
-            dateInput(
-              "start_date",
-              label = NULL,
-              value = NULL,
-              min = options$date_range$min_date,
-              max = options$date_range$max_date
-            )
-          ),
-          tags$div(
-            class = "w-1/2",
-            dateInput(
-              "end_date",
-              label = NULL,
-              value = NULL,
-              min = options$date_range$min_date,
-              max = options$date_range$max_date
-            )
-          )
-        )
-      ),
-      
-      # Sales Agent
-      tags$div(
-        tags$label(
-          class = "block text-xs font-medium text-gray-500 uppercase tracking-wider",
-          `for` = "agent_filter",
-          "Sales Agent"
-        ),
-        selectInput(
-          "agent_filter",
-          label = NULL,
-          choices = agent_choices,
-          selected = ""
-        )
-      ),
-      
-      # Region
-      tags$div(
-        tags$label(
-          class = "block text-xs font-medium text-gray-500 uppercase tracking-wider",
-          `for` = "region_filter",
-          "Region"
-        ),
-        selectInput(
-          "region_filter",
-          label = NULL,
-          choices = region_choices,
-          selected = ""
-        )
-      ),
-      
-      # Category
-      tags$div(
-        tags$label(
-          class = "block text-xs font-medium text-gray-500 uppercase tracking-wider",
-          `for` = "category_filter",
-          "Product Category"
-        ),
-        selectInput(
-          "category_filter",
-          label = NULL,
-          choices = category_choices,
-          selected = ""
-        )
-      )
-    )
-  })
+get_filter_state <- function(filters) {
+  list(
+    start_date = filters$start_date %||% "",
+    end_date = filters$end_date %||% "",
+    agent = filters$agent %||% "",
+    region = filters$region %||% "",
+    category = filters$category %||% "",
+    is_filtered = filters$is_filtered,
+    last_updated = format(filters$last_updated, "%Y-%m-%d %H:%M:%S")
+  )
 }
