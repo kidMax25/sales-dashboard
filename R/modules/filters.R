@@ -1,146 +1,167 @@
+# R/modules/filters.R
+# ============================================
+# FILTERS MODULE - Namespaced with moduleServer
+# ============================================
 
 library(shiny)
 library(tidyverse)
+library(jsonlite)  # for potential extensions
+`%||%` <- function(a, b) if (!is.null(a)) a else b
 
-source("data/database_operations.R")
+source("data/database_operations.R")  # for get_data()
 
-get_filter_options <- function() {
-  tryCatch({
-    sales_data <- get_data()
+filtersServer <- function(id, base_data = NULL) {
+  moduleServer(id, function(input, output, session) {
     
-    if (is.null(sales_data) || nrow(sales_data) == 0) {
-      return(NULL)
-    }
+    # If no base_data passed, load it inside (cached reactively)
+    sales_data_full <- reactive({
+      if (is.null(base_data)) {
+        req(get_data())  # from database_operations.R
+      } else {
+        req(base_data())
+      }
+    })
     
-    cat("Extracting filter options from sales_data...\n")
+    # ============================================
+    # EXTRACT FILTER OPTIONS (sent to JS once)
+    # ============================================
+    filter_options <- reactive({
+      data <- sales_data_full()
+      
+      if (is.null(data) || nrow(data) == 0) return(NULL)
+      
+      agents <- data %>%
+        distinct(`Employee ID`, `First Name`, `Last Name`) %>%
+        filter(!is.na(`Employee ID`), !is.na(`First Name`), !is.na(`Last Name`)) %>%
+        mutate(
+          value = as.character(`Employee ID`),
+          label = paste(`First Name`, `Last Name`)
+        ) %>%
+        arrange(label) %>%
+        select(value, label)
+      
+      regions <- data %>%
+        distinct(`Ship City`) %>%
+        filter(!is.na(`Ship City`), `Ship City` != "") %>%
+        rename(value = `Ship City`) %>%
+        mutate(label = value) %>%
+        arrange(value)
+      
+      categories <- data %>%
+        distinct(Category) %>%
+        filter(!is.na(Category), Category != "") %>%
+        rename(value = Category) %>%
+        mutate(label = value) %>%
+        arrange(value)
+      
+      date_range <- list(
+        min_date = as.character(min(data$`Order Date`, na.rm = TRUE)),
+        max_date = as.character(max(data$`Order Date`, na.rm = TRUE))
+      )
+      
+      list(
+        agents = agents,
+        regions = regions,
+        categories = categories,
+        date_range = date_range
+      )
+    })
     
-    # Extract unique agents (First Name + Last Name)
-    agents <- sales_data %>%
-      distinct(`Employee ID`, `First Name`, `Last Name`) %>%
-      filter(!is.na(`Employee ID`), 
-             !is.na(`First Name`), 
-             !is.na(`Last Name`)) %>%
-      mutate(
-        value = as.character(`Employee ID`),
-        label = paste(`First Name`, `Last Name`)
-      ) %>%
-      arrange(label) %>%
-      select(value, label)
+    # Send options to JS on module init/change
+    session$onFlushed(function() {
+      isolate({
+        opts <- filter_options()
+        if (!is.null(opts)) {
+          session$sendCustomMessage("filter_options", opts)
+        }
+      })
+    }, once = TRUE)
     
-    cat("  - Agents extracted:", nrow(agents), "\n")
-    
-    # Extract unique regions (Ship City)
-    regions <- sales_data %>%
-      distinct(`Ship City`) %>%
-      filter(!is.na(`Ship City`), `Ship City` != "") %>%
-      rename(value = `Ship City`) %>%
-      mutate(label = value) %>%
-      arrange(value)
-    
-    cat("  - Regions (Ship City) extracted:", nrow(regions), "\n")
-    
-    # Extract unique categories
-    categories <- sales_data %>%
-      distinct(Category) %>%
-      filter(!is.na(Category), Category != "") %>%
-      rename(value = Category) %>%
-      mutate(label = value) %>%
-      arrange(value)
-    
-    cat("  - Categories extracted:", nrow(categories), "\n")
-    
-    # Get date range from Order Date
-    date_range <- list(
-      min_date = as.character(min(sales_data$`Order Date`, na.rm = TRUE)),
-      max_date = as.character(max(sales_data$`Order Date`, na.rm = TRUE))
+    # ============================================
+    # REACTIVE FILTER STATE
+    # ============================================
+    filters <- reactiveValues(
+      start_date = NULL,
+      end_date = NULL,
+      agent = NULL,
+      region = NULL,
+      category = NULL,
+      is_filtered = FALSE,
+      last_updated = Sys.time()
     )
     
-    cat("  - Date range:", date_range$min_date, "to", date_range$max_date, "\n")
+    # Update from JS input$dashboard_filters
+    observeEvent(input$dashboard_filters, {
+      req(input$dashboard_filters)
+      f <- input$dashboard_filters
+      
+      filters$start_date <- f$startDate %||% NULL
+      filters$end_date   <- f$endDate %||% NULL
+      filters$agent      <- f$agent %||% NULL
+      filters$region     <- f$region %||% NULL
+      filters$category   <- f$category %||% NULL
+      
+      filters$is_filtered <- any(nzchar(c(f$startDate, f$endDate, f$agent, f$region, f$category)))
+      filters$last_updated <- Sys.time()
+    })
     
-    # Build options list
-    options <- list(
-      agents = agents,
-      regions = regions,
-      categories = categories,
-      date_range = date_range
+    # Reset from JS
+    observeEvent(input$filters_reset, {
+      filters$start_date <- NULL
+      filters$end_date   <- NULL
+      filters$agent      <- NULL
+      filters$region     <- NULL
+      filters$category   <- NULL
+      filters$is_filtered <- FALSE
+      filters$last_updated <- Sys.time()
+    })
+    
+    # ============================================
+    # APPLY FILTERS TO DATA
+    # ============================================
+    filtered_data <- reactive({
+      data <- sales_data_full()
+      if (is.null(data)) return(NULL)
+      
+      if (!is.null(filters$start_date) && nzchar(filters$start_date)) {
+        data <- data %>% filter(`Order Date` >= as.Date(filters$start_date))
+      }
+      if (!is.null(filters$end_date) && nzchar(filters$end_date)) {
+        data <- data %>% filter(`Order Date` <= as.Date(filters$end_date))
+      }
+      if (!is.null(filters$agent) && nzchar(filters$agent)) {
+        data <- data %>% filter(`Employee ID` == as.numeric(filters$agent))
+      }
+      if (!is.null(filters$region) && nzchar(filters$region)) {
+        data <- data %>% filter(`Ship City` == filters$region)
+      }
+      if (!is.null(filters$category) && nzchar(filters$category)) {
+        data <- data %>% filter(Category == filters$category)
+      }
+      
+      data
+    })
+    
+    # Optional: Send current state back to JS for sync/debug
+    observe({
+      state <- list(
+        start_date = filters$start_date %||% "",
+        end_date = filters$end_date %||% "",
+        agent = filters$agent %||% "",
+        region = filters$region %||% "",
+        category = filters$category %||% "",
+        is_filtered = filters$is_filtered,
+        last_updated = format(filters$last_updated)
+      )
+      session$sendCustomMessage("filter_state", state)
+    })
+    
+    # Return what other modules/server need
+    list(
+      filtered_data = filtered_data,
+      full_data = sales_data_full,
+      options = filter_options,
+      state = reactive(filters)  # if needed elsewhere
     )
-    
-    return(options)
-    
-  }, error = function(e) {
-    cat("Error getting filter options:", e$message, "\n")
-    return(NULL)
   })
-}
-
-create_filter_reactives <- function() {
-  reactiveValues(
-    start_date = NULL,
-    end_date = NULL,
-    agent = NULL,
-    region = NULL,
-    category = NULL,
-    is_filtered = FALSE,
-    last_updated = Sys.time()
-  )
-}
-
-apply_filters_to_data <- function(sales_data, filters) {
-  
-  if (is.null(sales_data) || nrow(sales_data) == 0) {
-    return(NULL)
-  }
-  
-  filtered_data <- sales_data
-  original_rows <- nrow(filtered_data)
-  
-  if (!is.null(filters$start_date) && filters$start_date != "") {
-    filtered_data <- filtered_data %>%
-      filter(`Order Date` >= as.Date(filters$start_date))
-    cat("  - After start_date filter:", nrow(filtered_data), "rows\n")
-  }
-  
-  if (!is.null(filters$end_date) && filters$end_date != "") {
-    filtered_data <- filtered_data %>%
-      filter(`Order Date` <= as.Date(filters$end_date))
-    cat("  - After end_date filter:", nrow(filtered_data), "rows\n")
-  }
-  
-  # Agent filter (Employee ID)
-  if (!is.null(filters$agent) && filters$agent != "") {
-    filtered_data <- filtered_data %>%
-      filter(`Employee ID` == as.numeric(filters$agent))
-    cat("  - After agent filter:", nrow(filtered_data), "rows\n")
-  }
-  
-  # Region filter (Ship City)
-  if (!is.null(filters$region) && filters$region != "") {
-    filtered_data <- filtered_data %>%
-      filter(`Ship City` == filters$region)
-    cat("  - After region filter:", nrow(filtered_data), "rows\n")
-  }
-  
-  # Category filter
-  if (!is.null(filters$category) && filters$category != "") {
-    filtered_data <- filtered_data %>%
-      filter(Category == filters$category)
-    cat("  - After category filter:", nrow(filtered_data), "rows\n")
-  }
-  
-  cat("Data filtered:", original_rows, "->", nrow(filtered_data), "rows\n")
-  
-  return(filtered_data)
-}
-
-
-get_filter_state <- function(filters) {
-  list(
-    start_date = filters$start_date %||% "",
-    end_date = filters$end_date %||% "",
-    agent = filters$agent %||% "",
-    region = filters$region %||% "",
-    category = filters$category %||% "",
-    is_filtered = filters$is_filtered,
-    last_updated = format(filters$last_updated, "%Y-%m-%d %H:%M:%S")
-  )
 }

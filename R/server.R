@@ -15,74 +15,15 @@ server <- function(input, output, session) {
     get_data()
   })
   
-  observe({
-    options <- get_filter_options()
-    if (!is.null(options)) {
-      session$sendCustomMessage("filter_options", options)
-      cat("Filter options sent to JS\n")
-    }
-  })
-
-  
-  filters <- create_filter_reactives()
-  
-  observeEvent(input$dashboard_filters, {
-    req(input$dashboard_filters)
-    
-    filter_data <- input$dashboard_filters
-    
-    cat("=== Filter Update from JS ===\n")
-    cat("Start Date:", filter_data$startDate, "\n")
-    cat("End Date:", filter_data$endDate, "\n")
-    cat("Agent:", filter_data$agent, "\n")
-    cat("Region:", filter_data$region, "\n")
-    cat("Category:", filter_data$category, "\n")
-    
-    filters$start_date <- filter_data$startDate
-    filters$end_date <- filter_data$endDate
-    filters$agent <- filter_data$agent
-    filters$region <- filter_data$region
-    filters$category <- filter_data$category
-    
-    filters$is_filtered <- !is.null(filter_data$startDate) && filter_data$startDate != "" ||
-      !is.null(filter_data$endDate) && filter_data$endDate != "" ||
-      !is.null(filter_data$agent) && filter_data$agent != "" ||
-      !is.null(filter_data$region) && filter_data$region != "" ||
-      !is.null(filter_data$category) && filter_data$category != ""
-    
-    filters$last_updated <- Sys.time()
-  })
-  
-  # Listen to reset from JS
-  observeEvent(input$filters_reset, {
-    cat("Filters reset requested from JS\n")
-    
-    filters$start_date <- NULL
-    filters$end_date <- NULL
-    filters$agent <- NULL
-    filters$region <- NULL
-    filters$category <- NULL
-    filters$is_filtered <- FALSE
-    filters$last_updated <- Sys.time()
-  })
-  
-  filtered_sales_data <- reactive({
-    cat("Applying filters to data...\n")
-    apply_filters_to_data(base_sales_data(), filters)
-  })
-  
-
-  # Calculate and send KPIs whenever filtered data changes
-  observe({
-    kpis <- calculate_kpis(filtered_sales_data())
-    session$sendCustomMessage("update_kpis", kpis)
-    cat("KPIs sent to JS\n")
-  })
-  
+  filters_mod <- filtersServer("filters_mod", base_data = base_sales_data)
   
   observe({
-    state <- get_filter_state(filters)
-    session$sendCustomMessage("filter_state", state)
+    kpis <- calculate_kpis(filters_mod$filtered_data())
+    session$sendCustomMessage("updated_kpis", kpis)
+  })
+  
+  output$filters <- renderUI({
+    tags$div(id = "filters-root")
   })
   
   # Render Header
@@ -167,15 +108,5 @@ server <- function(input, output, session) {
   })
   
 
-  output$debug_filters <- renderPrint({
-    list(
-      start_date = filters$start_date,
-      end_date = filters$end_date,
-      agent = filters$agent,
-      region = filters$region,
-      category = filters$category,
-      is_filtered = filters$is_filtered,
-      filtered_rows = nrow(filtered_sales_data())
-    )
-  })
+  
 }

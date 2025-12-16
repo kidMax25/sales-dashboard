@@ -20,6 +20,7 @@ ui <- htmlTemplate(
   header = uiOutput("header"),
   sidebar = uiOutput("sidebar"),
   dashboard = uiOutput("dashboard"),
+  filters = uiOutput("filters"),
   sales_agents = uiOutput("sales_agents"),
   product_performance = uiOutput("product_performance"),
   sales_forecast = uiOutput("sales_forecast"),
