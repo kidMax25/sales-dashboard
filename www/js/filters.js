@@ -1,431 +1,371 @@
-/**
- * ============================================
- * FILTERS.JS - Complete Filter Management
- * ============================================
- * Handles all filter UI interactions and communicates with Shiny
- * Populates dropdowns from R data:
- * - Sales Agent: First Name + Last Name
- * - Region: Ship City
- * - Category: Category
- */
-
-// ============================================
-// GLOBAL FILTER STATE
-// ============================================
-const FilterState = {
-    startDate: '',
-    endDate: '',
-    agent: '',       // Employee ID
-    region: '',      // Ship City
-    category: '',    // Category
+class FilterManager {
+  constructor() {
+    this.state = {
+      startDate: '',
+      endDate: '',
+      agent: '',
+      region: '',
+      category: ''
+    };
     
-    /**
-     * Get current state as object
-     * @returns {Object} Current filter values
-     */
-    getState() {
-        return {
-            startDate: this.startDate,
-            endDate: this.endDate,
-            agent: this.agent,
-            region: this.region,
-            category: this.category
-        };
-    },
+    this.bound = false;
+    this.cachedOptions = null; // ✅ CACHE OPTIONS HERE
+    this.cachedKPIs = null; // ✅ CACHE KPIs HERE
+    this.init();
+  }
+  
+  init() {
+    console.log('🔧 Initializing Filter Manager...');
     
-    /**
-     * Update state from DOM and send to Shiny
-     */
-    updateState() {
-        // Read values from DOM elements
-        this.startDate = document.getElementById('start_date')?.value || '';
-        this.endDate = document.getElementById('end_date')?.value || '';
-        this.agent = document.getElementById('agent_filter')?.value || '';
-        this.region = document.getElementById('region_filter')?.value || '';
-        this.category = document.getElementById('category_filter')?.value || '';
-        
-        // Log current state for debugging
-        console.log('=== Filter State Updated ===');
-        console.log('Start Date:', this.startDate);
-        console.log('End Date:', this.endDate);
-        console.log('Agent (Employee ID):', this.agent);
-        console.log('Region (Ship City):', this.region);
-        console.log('Category:', this.category);
-        
-        // Send to Shiny
-        this.sendToShiny();
-    },
-    
-    /**
-     * Send current state to Shiny server
-     */
-    sendToShiny() {
-        if (typeof Shiny !== 'undefined' && Shiny.setInputValue) {
-            Shiny.setInputValue('dashboard_filters', this.getState(), {priority: 'event'});
-            console.log('✓ Filter state sent to Shiny');
-        } else {
-            console.warn('Shiny not available - cannot send filter state');
-        }
-    },
-    
-    /**
-     * Reset all filters to default state
-     */
-    reset() {
-        console.log('Resetting all filters...');
-        
-        // Reset internal state
-        this.startDate = '';
-        this.endDate = '';
-        this.agent = '';
-        this.region = '';
-        this.category = '';
-        
-        // Reset DOM elements
-        const startDate = document.getElementById('start_date');
-        const endDate = document.getElementById('end_date');
-        const agentFilter = document.getElementById('agent_filter');
-        const regionFilter = document.getElementById('region_filter');
-        const categoryFilter = document.getElementById('category_filter');
-        
-        if (startDate) startDate.value = '';
-        if (endDate) endDate.value = '';
-        if (agentFilter) agentFilter.value = '';
-        if (regionFilter) regionFilter.value = '';
-        if (categoryFilter) categoryFilter.value = '';
-        
-        // Reset agent profile to default if function exists
-        if (typeof updateAgentProfile === 'function') {
-            updateAgentProfile('agent1');
-        }
-        
-        console.log('✓ Filters reset to default');
-        
-        // Send reset event and updated state to Shiny
-        if (typeof Shiny !== 'undefined' && Shiny.setInputValue) {
-            Shiny.setInputValue('filters_reset', Math.random(), {priority: 'event'});
-            Shiny.setInputValue('dashboard_filters', this.getState(), {priority: 'event'});
-            console.log('✓ Reset event sent to Shiny');
-        }
-    },
-    
-    /**
-     * Check if any filter is active
-     * @returns {boolean}
-     */
-    isFiltered() {
-        return this.startDate !== '' || 
-               this.endDate !== '' || 
-               this.agent !== '' || 
-               this.region !== '' || 
-               this.category !== '';
+    // Register handlers with Shiny Bridge
+    if (window.ShinyBridge) {
+      window.ShinyBridge.on('filter_options', (data) => this.handleOptions(data));
+      window.ShinyBridge.on('update_kpis', (data) => this.handleKPIs(data));
+      console.log('✅ Filter Manager connected to Shiny Bridge');
     }
-};
-
-// ============================================
-// POPULATE FILTER OPTIONS FROM SHINY DATA
-// ============================================
-
-/**
- * Populate filter dropdowns with data from Shiny
- * @param {Object} options - Filter options from R
- */
-function populateFilterOptions(options) {
-    console.log('📥 Populating filter options from Shiny data');
+    
+    // Wait for Shiny to be connected AND elements to be rendered
+    if (typeof $ !== 'undefined') {
+      $(document).on('shiny:connected', () => {
+        console.log('🔌 Shiny connected, waiting for dashboard render...');
+        this.waitForElements();
+      });
+    } else {
+      this.waitForElements();
+    }
+  }
+  
+  /**
+   * Handle filter options - cache them and populate if elements exist
+   */
+  handleOptions(data) {
+    console.log('📥 Received filter options from Shiny');
+    this.cachedOptions = data; // ✅ CACHE THE DATA
+    
+    // Try to populate immediately
+    this.populateOptions(data);
+  }
+  
+  /**
+   * Handle KPI updates - cache them and update if elements exist
+   */
+  handleKPIs(data) {
+    console.log('📥 Received KPI data from Shiny');
+    this.cachedKPIs = data; // ✅ CACHE THE DATA
+    
+    // Try to update immediately
+    this.updateKPIs(data);
+  }
+  
+  waitForElements() {
+    console.log('⏳ Waiting for filter elements...');
+    
+    const checkElements = () => {
+      const startDate = document.getElementById('start_date');
+      const agentFilter = document.getElementById('agent_filter');
+      const kpiCard = document.querySelector('.div4 .grid > div:nth-child(1) .text-2xl');
+      
+      if (startDate && agentFilter) {
+        console.log('✅ Filter elements found!');
+        this.bindEvents();
+        
+        // ✅ POPULATE CACHED OPTIONS NOW
+        if (this.cachedOptions) {
+          console.log('📋 Populating cached options...');
+          this.populateOptions(this.cachedOptions);
+        }
+        
+        // ✅ UPDATE CACHED KPIs IF ELEMENTS EXIST
+        if (kpiCard && this.cachedKPIs) {
+          console.log('📊 Updating cached KPIs...');
+          this.updateKPIs(this.cachedKPIs);
+        } else if (this.cachedKPIs && !kpiCard) {
+          console.log('⚠️ KPI elements not ready yet, will retry...');
+          // Continue checking for KPI elements
+          setTimeout(() => {
+            const kpiCheck = document.querySelector('.div4 .grid > div:nth-child(1) .text-2xl');
+            if (kpiCheck && this.cachedKPIs) {
+              console.log('📊 KPI elements now ready, updating...');
+              this.updateKPIs(this.cachedKPIs);
+            }
+          }, 500);
+        }
+        
+        return true;
+      }
+      return false;
+    };
+    
+    // Try immediately
+    if (checkElements()) return;
+    
+    // Check every 100ms for up to 5 seconds
+    let attempts = 0;
+    const maxAttempts = 50;
+    
+    const interval = setInterval(() => {
+      attempts++;
+      
+      if (checkElements()) {
+        clearInterval(interval);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.error('❌ Filter elements not found after 5 seconds');
+      }
+    }, 100);
+  }
+  
+  bindEvents() {
+    if (this.bound) {
+      console.log('⚠️ Events already bound, skipping');
+      return;
+    }
+    
+    console.log('🔗 Binding filter events...');
+    
+    const filterIds = ['start_date', 'end_date', 'agent_filter', 'region_filter', 'category_filter'];
+    let boundCount = 0;
+    
+    filterIds.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener('change', () => this.handleChange(id));
+        boundCount++;
+        console.log(`  ✅ Bound: ${id}`);
+      } else {
+        console.warn(`  ⚠️ Not found: ${id}`);
+      }
+    });
+    
+    // Reset button
+    const resetBtn = document.getElementById('reset-filters');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.reset();
+      });
+      boundCount++;
+      console.log('  ✅ Bound: reset-filters');
+    } else {
+      console.warn('  ⚠️ Not found: reset-filters');
+    }
+    
+    if (boundCount > 0) {
+      this.bound = true;
+      console.log(`✅ Successfully bound ${boundCount} filter elements`);
+    } else {
+      console.error('❌ No filter elements were bound!');
+    }
+  }
+  
+  handleChange(filterId) {
+    this.updateState();
+    console.log(`🔄 Filter changed: ${filterId} = ${this.state[this.getStateKey(filterId)]}`);
+    
+    // ✅ FIX: Send when Shiny IS ready (removed the !)
+    if (window.ShinyBridge && window.ShinyBridge.isReady()) {
+      window.ShinyBridge.setInput('dashboard_filters', this.state, {priority: 'event'});
+      console.log('📤 Sent filter update to Shiny');
+    } else {
+      console.warn('⚠️ Shiny not ready, cannot send filter update');
+    }
+  }
+  
+  getStateKey(elementId) {
+    const map = {
+      'start_date': 'startDate',
+      'end_date': 'endDate',
+      'agent_filter': 'agent',
+      'region_filter': 'region',
+      'category_filter': 'category'
+    };
+    return map[elementId] || elementId;
+  }
+  
+  updateState() {
+    const getValue = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value : '';
+    };
+    
+    this.state = {
+      startDate: getValue('start_date'),
+      endDate: getValue('end_date'),
+      agent: getValue('agent_filter'),
+      region: getValue('region_filter'),
+      category: getValue('category_filter')
+    };
+  }
+  
+  reset() {
+    console.log('🔄 Resetting filters...');
+    
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    };
+    
+    setVal('start_date', '');
+    setVal('end_date', '');
+    setVal('agent_filter', '');
+    setVal('region_filter', '');
+    setVal('category_filter', '');
+    
+    this.state = {
+      startDate: '',
+      endDate: '',
+      agent: '',
+      region: '',
+      category: ''
+    };
+    
+    if (typeof updateAgentProfile === 'function') {
+      updateAgentProfile('agent1');
+    }
+    
+    console.log('✅ Filters reset');
+  }
+  
+  populateOptions(options) {
+    console.log('📥 Populating filter options...');
     
     if (!options) {
-        console.error('No options provided');
-        return;
+      console.error('❌ No options provided');
+      return;
     }
     
-    // Populate Sales Agents (First Name + Last Name)
+    // Populate Agents
     if (options.agents && Array.isArray(options.agents)) {
-        const agentFilter = document.getElementById('agent_filter');
-        if (agentFilter) {
-            // Clear existing and add "All Agents"
-            agentFilter.innerHTML = '<option value="">All Agents</option>';
-            
-            // Add agents from data
-            options.agents.forEach(agent => {
-                const option = document.createElement('option');
-                option.value = agent.value;  // Employee ID
-                option.textContent = agent.label;  // First Name + Last Name
-                agentFilter.appendChild(option);
-            });
-            
-            console.log('  ✓ Sales Agents populated:', options.agents.length, 'items');
-        } else {
-            console.warn('  ⚠ Agent filter element not found');
-        }
+      const select = document.getElementById('agent_filter');
+      if (select) {
+        select.innerHTML = '<option value="">All Agents</option>';
+        
+        options.agents.forEach(agent => {
+          const option = document.createElement('option');
+          option.value = agent.value;
+          option.textContent = agent.label;
+          select.appendChild(option);
+        });
+        
+        console.log(`  ✅ Agents: ${options.agents.length} items`);
+      } else {
+        console.warn('  ⚠️ agent_filter element not found');
+      }
     }
     
-    // Populate Regions (Ship City)
+    // Populate Regions
     if (options.regions && Array.isArray(options.regions)) {
-        const regionFilter = document.getElementById('region_filter');
-        if (regionFilter) {
-            // Clear existing and add "All Cities"
-            regionFilter.innerHTML = '<option value="">All Cities</option>';
-            
-            // Add cities from data
-            options.regions.forEach(region => {
-                const option = document.createElement('option');
-                option.value = region.value;  // Ship City
-                option.textContent = region.label;  // Ship City
-                regionFilter.appendChild(option);
-            });
-            
-            console.log('  ✓ Ship Cities populated:', options.regions.length, 'items');
-        } else {
-            console.warn('  ⚠ Region filter element not found');
-        }
+      const select = document.getElementById('region_filter');
+      if (select) {
+        select.innerHTML = '<option value="">All Cities</option>';
+        
+        options.regions.forEach(region => {
+          const option = document.createElement('option');
+          option.value = region.value;
+          option.textContent = region.label;
+          select.appendChild(option);
+        });
+        
+        console.log(`  ✅ Regions: ${options.regions.length} items`);
+      } else {
+        console.warn('  ⚠️ region_filter element not found');
+      }
     }
     
     // Populate Categories
     if (options.categories && Array.isArray(options.categories)) {
-        const categoryFilter = document.getElementById('category_filter');
-        if (categoryFilter) {
-            // Clear existing and add "All Categories"
-            categoryFilter.innerHTML = '<option value="">All Categories</option>';
-            
-            // Add categories from data
-            options.categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.value;  // Category
-                option.textContent = category.label;  // Category
-                categoryFilter.appendChild(option);
-            });
-            
-            console.log('  ✓ Categories populated:', options.categories.length, 'items');
-        } else {
-            console.warn('  ⚠ Category filter element not found');
-        }
+      const select = document.getElementById('category_filter');
+      if (select) {
+        select.innerHTML = '<option value="">All Categories</option>';
+        
+        options.categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.value;
+          option.textContent = cat.label;
+          select.appendChild(option);
+        });
+        
+        console.log(`  ✅ Categories: ${options.categories.length} items`);
+      } else {
+        console.warn('  ⚠️ category_filter element not found');
+      }
     }
     
-    // Set date range limits (Order Date)
+    // Set date range
     if (options.date_range) {
-        const startDate = document.getElementById('start_date');
-        const endDate = document.getElementById('end_date');
-        
-        if (startDate && options.date_range.min_date) {
-            startDate.min = options.date_range.min_date;
-            startDate.max = options.date_range.max_date;
-        }
-        
-        if (endDate && options.date_range.max_date) {
-            endDate.min = options.date_range.min_date;
-            endDate.max = options.date_range.max_date;
-        }
-        
-        console.log('  ✓ Date range set:', options.date_range.min_date, 'to', options.date_range.max_date);
+      const startDate = document.getElementById('start_date');
+      const endDate = document.getElementById('end_date');
+      
+      if (startDate) {
+        startDate.min = options.date_range.min_date;
+        startDate.max = options.date_range.max_date;
+      }
+      
+      if (endDate) {
+        endDate.min = options.date_range.min_date;
+        endDate.max = options.date_range.max_date;
+      }
+      
+      console.log(`  ✅ Date range: ${options.date_range.min_date} to ${options.date_range.max_date}`);
     }
     
-    console.log('✓ All filter options populated successfully');
-}
-
-// ============================================
-// UPDATE KPI DISPLAY
-// ============================================
-
-/**
- * Update KPI cards with new values from Shiny
- * @param {Object} kpis - KPI data from R
- */
-function updateKPIDisplay(kpis) {
-    console.log('📊 Updating KPI display');
+    console.log('✅ Filter options populated');
+  }
+  
+  updateKPIs(kpis) {
+    console.log('📊 Updating KPIs...');
     
     if (!kpis) {
-        console.error('No KPI data provided');
-        return;
+      console.error('❌ No KPI data provided');
+      return;
     }
     
-    // Update Total Revenue
+    const updateElement = (selector, text) => {
+      const el = document.querySelector(selector);
+      if (el) {
+        el.textContent = text;
+      } else {
+        console.warn(`  ⚠️ Element not found: ${selector}`);
+      }
+    };
+    
     if (kpis.total_revenue) {
-        const revenueValue = document.querySelector('.div4 .grid > div:nth-child(1) .text-2xl');
-        const revenueSubtitle = document.querySelector('.div4 .grid > div:nth-child(1) .text-xs');
-        
-        if (revenueValue) {
-            revenueValue.textContent = kpis.total_revenue.formatted;
-            console.log('  ✓ Total Revenue:', kpis.total_revenue.formatted);
-        }
-        
-        if (revenueSubtitle) {
-            revenueSubtitle.textContent = kpis.total_revenue.subtitle;
-        }
+      updateElement('.div4 .grid > div:nth-child(1) .text-2xl', kpis.total_revenue.formatted);
+      updateElement('.div4 .grid > div:nth-child(1) .text-xs', kpis.total_revenue.subtitle);
+      console.log(`  ✅ Revenue: ${kpis.total_revenue.formatted}`);
     }
     
-    // Update Total Orders
     if (kpis.total_orders) {
-        const ordersValue = document.querySelector('.div4 .grid > div:nth-child(2) .text-2xl');
-        const ordersSubtitle = document.querySelector('.div4 .grid > div:nth-child(2) .text-xs');
-        
-        if (ordersValue) {
-            ordersValue.textContent = kpis.total_orders.formatted;
-            console.log('  ✓ Total Orders:', kpis.total_orders.formatted);
-        }
-        
-        if (ordersSubtitle) {
-            ordersSubtitle.textContent = kpis.total_orders.subtitle;
-        }
+      updateElement('.div4 .grid > div:nth-child(2) .text-2xl', kpis.total_orders.formatted);
+      updateElement('.div4 .grid > div:nth-child(2) .text-xs', kpis.total_orders.subtitle);
+      console.log(`  ✅ Orders: ${kpis.total_orders.formatted}`);
     }
     
-    // Update Average Order Value
     if (kpis.average_order_value) {
-        const avgValue = document.querySelector('.div4 .grid > div:nth-child(3) .text-2xl');
-        const avgSubtitle = document.querySelector('.div4 .grid > div:nth-child(3) .text-xs');
-        
-        if (avgValue) {
-            avgValue.textContent = kpis.average_order_value.formatted;
-            console.log('  ✓ Avg Order Value:', kpis.average_order_value.formatted);
-        }
-        
-        if (avgSubtitle) {
-            avgSubtitle.textContent = kpis.average_order_value.subtitle;
-        }
+      updateElement('.div4 .grid > div:nth-child(3) .text-2xl', kpis.average_order_value.formatted);
+      updateElement('.div4 .grid > div:nth-child(3) .text-xs', kpis.average_order_value.subtitle);
+      console.log(`  ✅ Avg Order: ${kpis.average_order_value.formatted}`);
     }
     
-    // Update Total Shipped
     if (kpis.total_shipped) {
-        const shippedValue = document.querySelector('.div4 .grid > div:nth-child(4) .text-2xl');
-        const shippedSubtitle = document.querySelector('.div4 .grid > div:nth-child(4) .text-xs');
-        
-        if (shippedValue) {
-            shippedValue.textContent = kpis.total_shipped.formatted;
-            console.log('  ✓ Total Shipped:', kpis.total_shipped.formatted);
-        }
-        
-        if (shippedSubtitle) {
-            shippedSubtitle.textContent = kpis.total_shipped.subtitle;
-        }
+      updateElement('.div4 .grid > div:nth-child(4) .text-2xl', kpis.total_shipped.formatted);
+      updateElement('.div4 .grid > div:nth-child(4) .text-xs', kpis.total_shipped.subtitle);
+      console.log(`  ✅ Shipped: ${kpis.total_shipped.formatted}`);
     }
     
-    console.log('✓ KPIs updated successfully');
+    console.log('✅ KPIs updated');
+  }
+  
+  getState() {
+    return {...this.state};
+  }
+  
+  isFiltered() {
+    return Object.values(this.state).some(v => v !== '');
+  }
 }
 
-// ============================================
-// SHINY MESSAGE HANDLERS
-// ============================================
+// Create global instance
+window.FilterManager = new FilterManager();
 
-if (typeof Shiny !== 'undefined') {
-    console.log('✓ Shiny detected - Setting up message handlers');
-    
-    /**
-     * Receive filter options from Shiny
-     */
-    Shiny.addCustomMessageHandler('filter_options', function(options) {
-        console.log('📨 Received filter options from Shiny');
-        populateFilterOptions(options);
-    });
-    
-    /**
-     * Receive KPI updates from Shiny
-     */
-    Shiny.addCustomMessageHandler('update_kpis', function(kpis) {
-        console.log('📨 Received KPI update from Shiny');
-        updateKPIDisplay(kpis);
-    });
-    
-    /**
-     * Receive filter state from Shiny (for synchronization)
-     */
-    Shiny.addCustomMessageHandler('filter_state', function(state) {
-        console.log('📨 Received filter state from Shiny:', state);
-    });
-    
-} else {
-    console.warn('⚠ Shiny not detected - Running in standalone mode');
-}
-
-// ============================================
-// INITIALIZE EVENT LISTENERS
-// ============================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Filter system initializing...');
-    
-    // List of all filter input IDs
-    const filterInputs = [
-        'start_date',
-        'end_date',
-        'agent_filter',
-        'region_filter',
-        'category_filter'
-    ];
-    
-    // Bind change events to all filter inputs
-    filterInputs.forEach(filterId => {
-        const element = document.getElementById(filterId);
-        
-        if (element) {
-            element.addEventListener('change', function() {
-                console.log('🔄 Filter changed:', filterId, '=', this.value);
-                FilterState.updateState();
-            });
-            console.log('  ✓ Event listener bound to:', filterId);
-        } else {
-            console.warn('  ⚠ Filter element not found:', filterId);
-        }
-    });
-    
-    // Bind reset button
-    const resetButton = document.getElementById('reset-filters');
-    if (resetButton) {
-        resetButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('🔄 Reset button clicked');
-            FilterState.reset();
-        });
-        console.log('  ✓ Reset button bound');
-    } else {
-        console.warn('  ⚠ Reset button not found (#reset-filters)');
-    }
-    
-    console.log('✓ Filter system initialized');
-    
-    // Request initial data from Shiny after a short delay
-    setTimeout(function() {
-        if (typeof Shiny !== 'undefined') {
-            console.log('📤 Requesting initial data from Shiny...');
-            FilterState.sendToShiny(); // Trigger initial load
-        }
-    }, 500);
-});
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
-/**
- * Show notification to user (can be enhanced with a toast library)
- * @param {string} message - Notification message
- * @param {string} type - Notification type (info, success, warning, error)
- */
-function showNotification(message, type = 'info') {
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    // You can enhance this with a visual notification library like toastify
-}
-
-/**
- * Get filter summary as human-readable text
- * @returns {string}
- */
-function getFilterSummary() {
-    const state = FilterState.getState();
-    const parts = [];
-    
-    if (state.startDate) parts.push(`From: ${state.startDate}`);
-    if (state.endDate) parts.push(`To: ${state.endDate}`);
-    if (state.agent) parts.push(`Agent ID: ${state.agent}`);
-    if (state.region) parts.push(`City: ${state.region}`);
-    if (state.category) parts.push(`Category: ${state.category}`);
-    
-    return parts.length > 0 ? parts.join(', ') : 'No filters active';
-}
-
-// ============================================
-// EXPORT FOR GLOBAL ACCESS
-// ============================================
-window.FilterState = FilterState;
-window.getFilterSummary = getFilterSummary;
-
-// Log that filters.js is loaded
-console.log('✓ filters.js loaded successfully');
+console.log('✅ Filter Manager loaded');

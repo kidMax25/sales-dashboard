@@ -8,7 +8,7 @@ library(tidyverse)
 library(jsonlite)  # for potential extensions
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
-source("data/database_operations.R")  # for get_data()
+source("data/database_operations.R")
 
 filtersServer <- function(id, base_data = NULL) {
   moduleServer(id, function(input, output, session) {
@@ -22,11 +22,9 @@ filtersServer <- function(id, base_data = NULL) {
       }
     })
     
-    # ============================================
-    # EXTRACT FILTER OPTIONS (sent to JS once)
-    # ============================================
     filter_options <- reactive({
       data <- sales_data_full()
+      cat("Getting List Options")
       
       if (is.null(data) || nrow(data) == 0) return(NULL)
       
@@ -69,6 +67,7 @@ filtersServer <- function(id, base_data = NULL) {
     
     # Send options to JS on module init/change
     session$onFlushed(function() {
+      cat("Updating Lists")
       isolate({
         opts <- filter_options()
         if (!is.null(opts)) {
