@@ -263,35 +263,31 @@ class ProductInfoManager {
   }
   
   updateLatestSales(sales) {
-    console.log('Updating latest sales list...');
+    const container = document.querySelector('.div7 .space-y-2'); // Note space-y-2 for tighter list
+    if (!container || !sales) return;
     
-    const container = document.querySelector('.div7 .space-y-3');
-    if (!container) {
-      console.warn(' Latest sales container not found');
-      return;
-    }
-    
-    if (!sales || sales.length === 0) {
-      container.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">No sales data available</p>';
-      return;
-    }
-    
-    // Build HTML for sales items
     const html = sales.map(sale => `
-      <div class="flex items-center justify-between py-2 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-        <div>
-          <div class="font-medium text-sm text-gray-800">${sale.product}</div>
-          <div class="text-xs text-gray-500">${sale.category}</div>
+      <div class="flex items-center justify-between py-1.5 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center flex-1 min-w-0">
+            <div class="flex-shrink-0 w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center mr-2 overflow-hidden">
+                ${sale.icon 
+                  ? `<img src="${sale.icon}" class="w-4 h-4 object-contain" alt="${sale.product}">`
+                  : `<svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`
+                }
+            </div>
+            <div class="min-w-0">
+              <div class="font-medium text-xs text-gray-800 truncate leading-tight">${sale.product}</div>
+              <div class="text-[10px] text-gray-500 leading-tight">${sale.category}</div>
+            </div>
         </div>
-        <div class="text-right">
-          <div class="font-semibold text-sm text-gray-800">$${sale.total.toFixed(2)}</div>
-          <div class="text-xs text-gray-500">${sale.quantity} ${sale.quantity === 1 ? 'unit' : 'units'}</div>
+        <div class="text-right ml-2">
+          <div class="font-semibold text-xs text-gray-800">$${sale.total.toFixed(2)}</div>
+          <div class="text-[10px] text-gray-500 leading-tight">${sale.quantity} units</div>
         </div>
       </div>
     `).join('');
     
     container.innerHTML = html;
-    console.log(` Latest sales updated (${sales.length} items)`);
   }
   
   destroy() {

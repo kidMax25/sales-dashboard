@@ -6,15 +6,13 @@ p_load(shiny, jsonlite, tidyverse)
 source("R/modules/kpis.R")
 source("data/database_operations.R")
 source("R/modules/product_data.R")
+source("R/modules/agents.R")
 
-# Define the %||% operator if not available
+# Define the %||%
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
 server <- function(input, output, session) {
   
-  # ============================================
-  # DATA LOADING
-  # ============================================
   
   base_sales_data <- reactive({
     cat("Loading base sales data...\n")
@@ -101,7 +99,6 @@ server <- function(input, output, session) {
     )
   })
   
-  # Send filter options to JS when ready
   observe({
     opts <- filter_options()
     if (!is.null(opts)) {
@@ -112,11 +109,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
-  
-  # ============================================
-  # REACTIVE FILTERS
-  # ============================================
   
   filters <- reactiveValues(
     start_date = NULL,
@@ -157,9 +149,6 @@ server <- function(input, output, session) {
     filters$last_updated <- Sys.time()
   })
   
-  # ============================================
-  # APPLY FILTERS TO DATA
-  # ============================================
   
   filtered_data <- reactive({
     data <- base_sales_data()
@@ -200,26 +189,25 @@ server <- function(input, output, session) {
     
     data
   })
-  
-  # ============================================
-  # CALCULATE AND SEND KPIs
-  # ============================================
+
   
   observe({
     kpis <- calculate_kpis(filtered_data())
     session$sendCustomMessage("update_kpis", kpis)
-    cat("✅ KPIs sent to JS\n")
+    cat("KPIs sent to JS\n")
   })
   
   observe({
     product_data <- calculate_product_data(filtered_data())
     session$sendCustomMessage("product_data", product_data)
-    cat("✅ Product data sent to JS\n")
+    cat("Product data sent to JS\n")
   })
   
-  # ============================================
-  # SEND FILTER STATE (for debugging)
-  # ============================================
+  observe({
+    agent_data <- calculate_agent_data(base_sales_data())
+    session$sendCustomMessage("agent_data", agent_data)
+    cat("Agent data sent to JS\n")
+  })
   
   observe({
     state <- list(
@@ -234,9 +222,7 @@ server <- function(input, output, session) {
     session$sendCustomMessage("filter_state", state)
   })
   
-  # ============================================
   # UI RENDERING
-  # ============================================
   
   output$header <- renderUI({
     includeHTML("app/components/header.html")

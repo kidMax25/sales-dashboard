@@ -1,11 +1,3 @@
-/**
- * ============================================
- * SHINY BRIDGE - Main Communication Class
- * ============================================
- * Central hub for all Shiny <-> JavaScript communication
- * Other components can use this to interact with Shiny
- */
-
 class ShinyBridge {
   constructor() {
     this.ready = false;
@@ -13,9 +5,6 @@ class ShinyBridge {
     this.init();
   }
   
-  /**
-   * Initialize the bridge
-   */
   init() {
     if (typeof Shiny === 'undefined') {
       console.warn('Shiny not available - Bridge in standalone mode');
@@ -29,37 +18,36 @@ class ShinyBridge {
       this.setupMessageHandlers();
     });
     
-    // Monitor disconnections
     $(document).on('shiny:disconnected', () => {
       this.ready = false;
       console.warn(' Shiny disconnected');
     });
   }
   
-  /**
-   * Setup custom message handlers
-   */
   setupMessageHandlers() {
     Shiny.addCustomMessageHandler('filter_options', (data) => {
       console.log('[Bridge] Received filter_options');
       this.trigger('filter_options', data);
     });
     
-    // Handler for KPI updates from R
     Shiny.addCustomMessageHandler('update_kpis', (data) => {
       console.log('[Bridge] Received update_kpis');
       this.trigger('update_kpis', data);
     });
     
     Shiny.addCustomMessageHandler('product_data', (data) => {
-      console.log('📨 [Bridge] Received product_data');
+      console.log('[Bridge] Received product_data');
       this.trigger('product_data', data);
     });
     
-    // Handler for filter state sync
     Shiny.addCustomMessageHandler('filter_state', (data) => {
-      console.log('📨 [Bridge] Received filter_state');
+      console.log('[Bridge] Received filter_state');
       this.trigger('filter_state', data);
+    });
+    
+    Shiny.addCustomMessageHandler('agent_data', (data) => {
+      console.log('[Bridge] Received agent_data');
+      this.trigger('agent_data', data);
     });
   }
   
@@ -71,12 +59,12 @@ class ShinyBridge {
    */
   setInput(inputId, value, options = {}) {
     if (!this.ready) {
-      console.warn(`⚠️ Cannot set input '${inputId}' - Shiny not ready`);
+      console.warn(`Cannot set input '${inputId}' - Shiny not ready`);
       return false;
     }
     
     Shiny.setInputValue(inputId, value, options);
-    console.log(`📤 [Bridge] Sent to input '${inputId}':`, value);
+    console.log(`[Bridge] Sent to input '${inputId}':`, value);
     return true;
   }
   
@@ -87,12 +75,12 @@ class ShinyBridge {
    */
   sendCustomMessage(type, message) {
     if (!this.ready) {
-      console.warn(`⚠️ Cannot send message '${type}' - Shiny not ready`);
+      console.warn(`Cannot send message '${type}' - Shiny not ready`);
       return false;
     }
     
     Shiny.setInputValue(type, message, {priority: 'event'});
-    console.log(`📤 [Bridge] Sent custom message '${type}':`, message);
+    console.log(`[Bridge] Sent custom message '${type}':`, message);
     return true;
   }
   
@@ -106,7 +94,7 @@ class ShinyBridge {
       this.messageHandlers.set(type, []);
     }
     this.messageHandlers.get(type).push(callback);
-    console.log(`🎧 [Bridge] Handler registered for '${type}'`);
+    console.log(`[Bridge] Handler registered for '${type}'`);
   }
   
   /**
@@ -122,7 +110,7 @@ class ShinyBridge {
       try {
         handler(data);
       } catch (error) {
-        console.error(`❌ Error in handler for '${type}':`, error);
+        console.error(`Error in handler for '${type}':`, error);
       }
     });
   }
@@ -148,5 +136,3 @@ class ShinyBridge {
 
 // Create global instance
 window.ShinyBridge = new ShinyBridge();
-
-console.log('✅ Shiny Bridge class loaded');

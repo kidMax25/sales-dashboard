@@ -162,32 +162,29 @@
         
         <!-- Div 7: Latest Sales -->
         <div class="div7">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Latest Sales</h3>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
-                        <div>
-                            <div class="font-medium text-sm">Chai</div>
-                            <div class="text-xs text-gray-500">Beverages</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-semibold text-sm">$72.00</div>
-                            <div class="text-xs text-gray-500">2 units</div>
-                        </div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full">
+        <h3 class="text-sm font-semibold text-gray-800 mb-3">Latest Sales</h3>
+        <div class="space-y-2">
+            <div class="flex items-center justify-between py-1.5 border-b border-gray-50">
+                <div class="flex items-center flex-1">
+                    <div class="flex-shrink-0 w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mr-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
                     </div>
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
-                        <div>
-                            <div class="font-medium text-sm">Chang</div>
-                            <div class="text-xs text-gray-500">Beverages</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-semibold text-sm">$95.00</div>
-                            <div class="text-xs text-gray-500">5 units</div>
-                        </div>
+                    <div class="min-w-0">
+                        <div class="font-medium text-xs text-gray-400 truncate">Product Name</div>
+                        <div class="text-[10px] text-gray-300 leading-tight">Category</div>
                     </div>
+                </div>
+                <div class="text-right ml-2">
+                    <div class="font-semibold text-xs text-gray-400">$$</div>
+                    <div class="text-[10px] text-gray-300">units...</div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
         
         <!-- Regional Information Section -->
         <!-- Div 8: Map -->
@@ -229,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Loading agent profile...');
     
     const paths = [
-        'components/agent-profile.html',
+        'app/components/agent-profile.html',
         'www/components/agent-profile.html',
         '/components/agent-profile.html'
     ];
