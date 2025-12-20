@@ -28,7 +28,7 @@ COPY . /home/shiny-app
 # Install R packages
 # Explicitly installing 'ragg' and 'textshaping' first helps catch errors early
 RUN R -e "install.packages(c('ragg', 'textshaping'), repos='https://cran.rstudio.com/')"
-RUN R -e "install.packages(c('shiny', 'jsonlite', 'tidyverse', 'lubridate', 'RODBC', 'dotenv', 'plotly', 'leaflet'), repos='https://cran.rstudio.com/')"
+RUN R -e "install.packages(c('shiny', 'jsonlite', 'tidyverse', 'lubridate', 'RODBC', 'dotenv', 'plotly', 'leaflet', 'pacman'), repos='https://cran.rstudio.com/')"
 
 # Render uses the PORT environment variable
 EXPOSE 10000

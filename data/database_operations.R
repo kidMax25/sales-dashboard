@@ -29,8 +29,7 @@ get_data <- function() {
   cat("Data Loaded Successfully\n")
   
   ## Unnest Data
-  require(pacman)
-  p_load(tidyverse)
+ library(tidyverse)
   
   data_unlist <- map(data, as_tibble)
   
