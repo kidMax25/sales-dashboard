@@ -49,6 +49,22 @@ class ShinyBridge {
       console.log('[Bridge] Received agent_data');
       this.trigger('agent_data', data);
     });
+    
+    Shiny.addCustomMessageHandler('regional_data', (data) => {
+      console.log('[Bridge] Received regional_data');
+      this.trigger('regional_data', data);
+    });
+    
+    Shiny.addCustomMessageHandler('regional_distribution', (data) => {
+      console.log('[Bridge] Received regional_distribution');
+      this.trigger('regional_distribution', data);
+    });
+    
+    
+    Shiny.addCustomMessageHandler('sales_trend', (data) => {
+      console.log('[Bridge] Received sales_trend');
+      this.trigger('sales_trend', data);
+    });
   }
   
   /**

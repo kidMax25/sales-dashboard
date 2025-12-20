@@ -7,8 +7,12 @@ source("R/modules/kpis.R")
 source("data/database_operations.R")
 source("R/modules/product_data.R")
 source("R/modules/agents.R")
+source("R/modules/regional.R")
+source("R/modules/regional-distribution.R")
+source("R/modules/sales-trend.R")
 
-# Define the %||%
+source("R/modules/agent-performance.R")
+
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
 server <- function(input, output, session) {
@@ -16,9 +20,9 @@ server <- function(input, output, session) {
   
   base_sales_data <- reactive({
     cat("Loading base sales data...\n")
-    showNotification("Loading data...", type = "message", duration = 3)
+    showNotification("Loading data...", type = "message", duration = 2)
     data <- get_data()
-    showNotification("Data loaded successfully!", type = "message", duration = 2)
+    showNotification("Data loaded successfully!", type = "message", duration = 3)
     data
   })
   
@@ -42,7 +46,6 @@ server <- function(input, output, session) {
       arrange(label) %>%
       select(value, label)
     
-    # Convert to list of lists (row format for JS)
     agents_list <- lapply(1:nrow(agents_df), function(i) {
       list(
         value = agents_df$value[i],
@@ -50,7 +53,6 @@ server <- function(input, output, session) {
       )
     })
     
-    # Extract regions - convert to list of named lists
     regions_df <- data %>%
       distinct(`Ship City`) %>%
       filter(!is.na(`Ship City`), `Ship City` != "") %>%
@@ -65,7 +67,6 @@ server <- function(input, output, session) {
       )
     })
     
-    # Extract categories - convert to list of named lists
     categories_df <- data %>%
       distinct(Category) %>%
       filter(!is.na(Category), Category != "") %>%
@@ -102,9 +103,8 @@ server <- function(input, output, session) {
   observe({
     opts <- filter_options()
     if (!is.null(opts)) {
-      # Use toJSON with auto_unbox to ensure proper structure
       session$sendCustomMessage("filter_options", opts)
-      cat("✅ Filter options sent to JS\n")
+      cat("Filter options sent to JS\n")
       cat("Sample agent:", toJSON(opts$agents[[1]], auto_unbox = TRUE), "\n")
     }
   })
@@ -120,7 +120,6 @@ server <- function(input, output, session) {
     last_updated = Sys.time()
   )
   
-  # Listen to dashboard_filters input (from custom binding)
   observeEvent(input$dashboard_filters, {
     req(input$dashboard_filters)
     f <- input$dashboard_filters
@@ -156,7 +155,6 @@ server <- function(input, output, session) {
     
     original_rows <- nrow(data)
     
-    # Apply date filters
     if (!is.null(filters$start_date) && nzchar(filters$start_date)) {
       data <- data %>% filter(`Order Date` >= as.Date(filters$start_date))
       cat("After start_date filter:", nrow(data), "rows\n")
@@ -167,19 +165,16 @@ server <- function(input, output, session) {
       cat("After end_date filter:", nrow(data), "rows\n")
     }
     
-    # Apply agent filter
     if (!is.null(filters$agent) && nzchar(filters$agent)) {
       data <- data %>% filter(`Employee ID` == as.numeric(filters$agent))
       cat("After agent filter:", nrow(data), "rows\n")
     }
     
-    # Apply region filter (Ship City)
     if (!is.null(filters$region) && nzchar(filters$region)) {
       data <- data %>% filter(`Ship City` == filters$region)
       cat("After region filter:", nrow(data), "rows\n")
     }
     
-    # Apply category filter
     if (!is.null(filters$category) && nzchar(filters$category)) {
       data <- data %>% filter(Category == filters$category)
       cat("After category filter:", nrow(data), "rows\n")
@@ -210,6 +205,12 @@ server <- function(input, output, session) {
   })
   
   observe({
+    regional_data <- calculate_regional_data(filtered_data())
+    session$sendCustomMessage("regional_data", regional_data)
+    cat("Regional data sent to JS\n")
+  })
+  
+  observe({
     state <- list(
       start_date = filters$start_date %||% "",
       end_date = filters$end_date %||% "",
@@ -220,6 +221,25 @@ server <- function(input, output, session) {
       last_updated = format(filters$last_updated)
     )
     session$sendCustomMessage("filter_state", state)
+  })
+  
+  observe({
+    distribution_data <- calculate_regional_distribution(filtered_data())
+    session$sendCustomMessage("regional_distribution", distribution_data)
+    cat("Regional distribution data sent to JS\n")
+  })
+  
+  observe({
+    trend_data <- calculate_sales_trend(filtered_data())
+    session$sendCustomMessage("sales_trend", trend_data)
+    cat("Sales trend data sent to JS\n")
+  })
+  
+  ##
+  observe({
+    performance_data <- calculate_agent_performance(base_sales_data())
+    session$sendCustomMessage("agent_performance", performance_data)
+    cat("Agent performance data sent to JS\n")
   })
   
   # UI RENDERING
@@ -238,14 +258,8 @@ server <- function(input, output, session) {
   })
   
   output$sales_agents <- renderUI({
-    tags$div(
-      class = "max-w-7xl mx-auto",
-      tags$h2(class = "text-3xl font-bold text-gray-800 mb-6", "Sales Agents"),
-      tags$div(
-        class = "bg-white rounded-lg shadow-sm border border-gray-200 p-8",
-        tags$p(class = "text-gray-600", "Sales Agents page - Coming soon...")
-      )
-    )
+    cat("Rendering sales agents page\n")
+    includeHTML("app/sales-agents.html")
   })
   
   output$product_performance <- renderUI({

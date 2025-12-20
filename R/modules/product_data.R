@@ -66,7 +66,7 @@ calculate_product_data <- function(filtered_data) {
   latest_sales <- filtered_data %>%
     mutate(line_total = Quantity * `Unit Price` * (1 - Discount)) %>%
     arrange(desc(`Order Date`), desc(`Order ID`)) %>%
-    head(7) %>%
+    head(6) %>%
     left_join(icons, by = c("Product Name" = "Product.Name")) %>%
     mutate(
       product_clean = trimws(gsub(

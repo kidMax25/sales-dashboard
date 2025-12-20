@@ -2,18 +2,42 @@
     <div class="dashboard-grid">
         
         <!-- Div 2: Agent Profile -->
-        <div class="div2">
-            <div id="agent-profile-container" class="agent-profile-wrapper">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
-                    <div class="animate-pulse text-center">
-                        <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2"></div>
-                        <div class="h-3 bg-gray-200 rounded w-24 mx-auto mb-1"></div>
-                        <div class="h-2 bg-gray-200 rounded w-16 mx-auto"></div>
-                    </div>
-                </div>
+<div class="div2">
+    <div id="agent-profile-container" class="agent-profile-wrapper">
+        <!-- Agent Profile Content -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full flex flex-col items-center justify-center">
+            <!-- Agent Portrait -->
+            <div class="w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-blue-100 flex-shrink-0 shadow-md">
+                <img id="agent-portrait" 
+                     src="https://ui-avatars.com/api/?name=ST&size=200&background=3b82f6&color=fff" 
+                     alt="Agent Portrait" 
+                     class="w-full h-full object-cover">
             </div>
+            
+            <!-- Agent Name -->
+            <h3 id="agent-name" class="text-lg font-bold text-gray-800 mb-2 text-center">
+                Steven Thorpe
+            </h3>
+            
+            <!-- Agent Role (Pill) -->
+            <span id="agent-role" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-3 bg-orange-100 text-orange-700">
+                Sales Manager
+            </span>
+            
+            <!-- Agent Email-->
+            <a id="agent-email" 
+               href="mailto:steven.thorpe@northwind.com" 
+               class="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <span class="break-all">steven.thorpe@northwind.com</span>
+            </a>
         </div>
-        
+    </div>
+</div>
+
         <!-- Div 3: Filters (WITH SHINY BINDING MARKER) -->
         <div class="div3 dashboard-filters" id="dashboard_filters">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full relative">
@@ -219,40 +243,3 @@
         
     </div>
 </div>
-
-<script>
-// Load agent profile component
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Loading agent profile...');
-    
-    const paths = [
-        'app/components/agent-profile.html',
-        'www/components/agent-profile.html',
-        '/components/agent-profile.html'
-    ];
-    
-    async function loadAgentProfile() {
-        for (const path of paths) {
-            try {
-                const response = await fetch(path);
-                if (response.ok) {
-                    const html = await response.text();
-                    console.log('Agent profile loaded from:', path);
-                    document.getElementById('agent-profile-container').innerHTML = html;
-                    
-                    const scripts = document.getElementById('agent-profile-container').getElementsByTagName('script');
-                    for (let script of scripts) {
-                        eval(script.innerHTML);
-                    }
-                    return;
-                }
-            } catch (error) {
-                console.log('Failed to load from:', path);
-            }
-        }
-        console.error('Could not load agent profile from any path');
-    }
-    
-    loadAgentProfile();
-});
-</script>
