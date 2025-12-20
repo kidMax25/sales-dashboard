@@ -1,0 +1,17 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# R Project files
+.Rproj.user
+.Rhistory
+.RData
+.env
+
+
+# Documentation
+README.md

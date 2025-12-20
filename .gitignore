@@ -1,4 +1,12 @@
-.Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+.Rproj.user/
+
+.env
+
+
+*.pdf
+*.log
+
+.DS_Store
