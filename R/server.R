@@ -1,6 +1,6 @@
-require(pacman, quietly = TRUE)
-
-p_load(shiny, jsonlite, tidyverse)
+library(shiny)
+library(jsonlite)
+library(tidyverse)
 
 # Load functions
 source("R/modules/kpis.R")
