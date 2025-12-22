@@ -1,6 +1,5 @@
 library(shiny)
 library(jsonlite)
-install.packages("tidyverse")
 library(tidyverse)
 
 # Load functions

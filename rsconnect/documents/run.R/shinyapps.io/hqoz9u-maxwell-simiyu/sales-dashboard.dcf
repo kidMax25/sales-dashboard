@@ -1,0 +1,13 @@
+name: sales-dashboard
+title: sales-dashboard
+username: hqoz9u-maxwell-simiyu
+account: hqoz9u-maxwell-simiyu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16345067
+bundleId: 11355381
+url: https://hqoz9u-maxwell-simiyu.shinyapps.io/sales-dashboard/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .dockerignore|.RData|app.zip|config.yml|Dockerfile|README.md
